@@ -1,3 +1,7 @@
+if (! isGeneric("saDecomposition" )){
+  setGeneric(name="saDecomposition", def = function( object, id, ... ){standardGeneric("saDecomposition")})
+}
+
 #' Title
 #'
 #' @return
@@ -26,6 +30,69 @@ setMethod("show", "JD3_LP_Properties", function(object){
   }
 })
 
+#' Title
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setClass(
+  Class="JD3_X11Plus",
+  contains = "JD3_ProcResults"
+)
+
+#' Title
+#'
+#' @param JD3_X11Plus
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod("show", "JD3_X11Plus", function(object){
+  if (is.jnull(object@internal)){
+    cat("Invalid estimation")
+  }else{
+    cat("X11", "\n")
+  }
+})
+
+#' Title
+#'
+#' @param JD3_X11Plus
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod("predict", "JD3_X11Plus", function(object){
+  if (is.jnull(object@internal)){
+    cat("Invalid estimation")
+  }else{
+    cat("X11Plus", "\n")
+  }
+})
+
+#' Title
+#'
+#' @param JD3_X11Plus
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod("saDecomposition", "JD3_X11Plus", function(object){
+  if (is.jnull(object@internal)){
+    return (NULL)
+  }else{
+    y<-proc_data(object@internal, "y")
+    sa<-proc_data(object@internal, "d11")
+    trend<-proc_data(object@internal, "d12")
+    seas<-proc_data(object@internal, "d10")
+    irr<-proc_data(object@internal, "d13")
+    return (cbind(y, sa, trend, seas, irr))
+  }
+})
 
 #' Title
 #'
@@ -119,3 +186,86 @@ filter.phase<-function(filter){
   }
 }
 
+#' Title
+#'
+#' @param data
+#' @param period
+#' @param mul
+#' @param trend.horizon
+#' @param trend.degree
+#' @param trend.kernel
+#' @param trend.asymmetric.degree
+#' @param trend.asymmetric.params
+#' @param trend.asymmetric.timeliness
+#' @param trend.asymmetric.passBand
+#' @param seas.horizon
+#' @param seas.kernel
+#' @param extreme.lsig
+#' @param extreme.usig
+#'
+#' @return
+#' @export
+#'
+#' @examples
+x11.lp<-function(data, period, mul=T, trend.horizon=6, trend.degree=2,
+                 trend.kernel=c("Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov", "Trapezoidal"),
+                 trend.asymmetric.degree=0, trend.asymmetric.params=2/(sqrt(pi)*3.5), trend.asymmetric.timeliness=0, trend.asymmetric.passBand=pi/8,
+                 seas.horizon=3, seas.kernel=c("Trapezoidal", "Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov"),
+                 extreme.lsig=1.5, extreme.usig=2.5){
+  tkernel=match.arg(trend.kernel)
+  skernel=match.arg(seas.kernel)
+  if (is.null(trend.asymmetric.params)){
+    jparams=.jnull("[D;")
+  }else{
+    jparams=.jarray(trend.asymmetric.params)
+  }
+
+  jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "lpX11", as.double(data), as.integer(period), mul,
+                as.integer(trend.horizon), as.integer(trend.degree), tkernel,
+                as.integer(trend.asymmetric.degree), jparams, trend.asymmetric.timeliness, trend.asymmetric.passBand,
+                as.integer(seas.horizon), skernel, extreme.lsig, extreme.usig)
+  return (new (Class = "JD3_X11Plus", internal = jrslt))
+}
+
+
+#' Title
+#'
+#' @param data
+#' @param period
+#' @param mul
+#' @param trend.horizon
+#' @param trend.degree
+#' @param trend.kernel
+#' @param rkhs.trend.bandWith
+#' @param rkhs.asymmetric.criterion
+#' @param rkhs.asymmetric.bandWith
+#' @param rkhs.asymmetric.passBand
+#' @param seas.horizon
+#' @param seas.kernel
+#' @param extreme.lsig
+#' @param extreme.usig
+#'
+#' @return
+#' @export
+#'
+#' @examples
+x11.rkhs<-function(data, period, mul=T, trend.horizon=6, trend.degree=2,
+                 trend.kernel=c("Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov", "Trapezoidal"),
+                 rkhs.trend.bandWith=T, rkhs.asymmetric.criterion=c("FrequencyResponse", "Accuracy", "Smoothness", "Timeliness"), rkhs.asymmetric.bandWith=T,rkhs.asymmetric.passBand=pi/8,
+                 seas.horizon=3, seas.kernel=c("Trapezoidal", "Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov"),
+                 extreme.lsig=1.5, extreme.usig=2.5){
+  tkernel=match.arg(trend.kernel)
+  skernel=match.arg(seas.kernel)
+  criterion=match.arg(rkhs.asymmetric.criterion)
+  if (is.null(trend.asymmetric.params)){
+    jparams=.jnull("[D;")
+  }else{
+    jparams=.jarray(trend.asymmetric.params)
+  }
+
+  jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "rkhsX11", as.double(data), as.integer(period), mul,
+                as.integer(trend.horizon), as.integer(trend.degree), tkernel, rkhs.trend.bandWith,
+                criterion, rkhs.asymmetric.bandWith, trend.asymmetric.passBand,
+                as.integer(seas.horizon), skernel, extreme.lsig, extreme.usig)
+  return (new (Class = "JD3_X11Plus", internal = jrslt))
+}
