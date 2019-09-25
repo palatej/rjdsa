@@ -215,7 +215,7 @@ x11.lp<-function(data, period, mul=T, trend.horizon=6, trend.degree=2,
   tkernel=match.arg(trend.kernel)
   skernel=match.arg(seas.kernel)
   if (is.null(trend.asymmetric.params)){
-    jparams=.jnull("[D;")
+    jparams=.jnull("[D")
   }else{
     jparams=.jarray(trend.asymmetric.params)
   }
@@ -257,15 +257,100 @@ x11.rkhs<-function(data, period, mul=T, trend.horizon=6, trend.degree=2,
   tkernel=match.arg(trend.kernel)
   skernel=match.arg(seas.kernel)
   criterion=match.arg(rkhs.asymmetric.criterion)
-  if (is.null(trend.asymmetric.params)){
-    jparams=.jnull("[D;")
-  }else{
-    jparams=.jarray(trend.asymmetric.params)
-  }
-
   jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "rkhsX11", as.double(data), as.integer(period), mul,
                 as.integer(trend.horizon), as.integer(trend.degree), tkernel, rkhs.trend.bandWith,
-                criterion, rkhs.asymmetric.bandWith, trend.asymmetric.passBand,
+                criterion, rkhs.asymmetric.bandWith, rkhs.asymmetric.passBand,
                 as.integer(seas.horizon), skernel, extreme.lsig, extreme.usig)
   return (new (Class = "JD3_X11Plus", internal = jrslt))
 }
+
+#' Title
+#'
+#' @param data
+#' @param period
+#' @param mul
+#' @param trend.horizon
+#' @param trend.degree
+#' @param trend.kernel
+#' @param seas.horizon
+#' @param seas.kernel
+#' @param extreme.lsig
+#' @param extreme.usig
+#'
+#' @return
+#' @export
+#'
+#' @examples
+x11.cn<-function(data, period, mul=T, trend.horizon=6, trend.degree=2,
+                   trend.kernel=c("Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov", "Trapezoidal"),
+                   seas.horizon=3, seas.kernel=c("Trapezoidal", "Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov"),
+                   extreme.lsig=1.5, extreme.usig=2.5){
+  tkernel=match.arg(trend.kernel)
+  skernel=match.arg(seas.kernel)
+  jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "cnX11", as.double(data), as.integer(period), mul,
+                as.integer(trend.horizon), as.integer(trend.degree), tkernel,
+                as.integer(seas.horizon), skernel, extreme.lsig, extreme.usig)
+  return (new (Class = "JD3_X11Plus", internal = jrslt))
+}
+
+#' Title
+#'
+#' @param data
+#' @param period
+#' @param mul
+#' @param trend.horizon
+#' @param trend.degree
+#' @param trend.kernel
+#' @param seas.horizon
+#' @param seas.kernel
+#' @param extreme.lsig
+#' @param extreme.usig
+#'
+#' @return
+#' @export
+#'
+#' @examples
+x11.daf<-function(data, period, mul=T, trend.horizon=6, trend.degree=2,
+                 trend.kernel=c("Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov", "Trapezoidal"),
+                 seas.horizon=3, seas.kernel=c("Trapezoidal", "Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov"),
+                 extreme.lsig=1.5, extreme.usig=2.5){
+  tkernel=match.arg(trend.kernel)
+  skernel=match.arg(seas.kernel)
+  jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "dafX11", as.double(data), as.integer(period), mul,
+                as.integer(trend.horizon), as.integer(trend.degree), tkernel,
+                as.integer(seas.horizon), skernel, extreme.lsig, extreme.usig)
+  return (new (Class = "JD3_X11Plus", internal = jrslt))
+}
+
+#' Title
+#'
+#' @param y
+#' @param period
+#' @param multiplicative
+#' @param trendLength
+#' @param trendDegree
+#' @param trendKernel
+#' @param asymmetric
+#' @param seas0
+#' @param seas1
+#' @param lsigma
+#' @param usigma
+#'
+#' @return
+#' @export
+#'
+#' @examples
+x11.default<-function(y, period, multiplicative=TRUE, trendLength=13, trendDegree=2,
+                  trendKernel=c("Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov", "Trapezoidal"), asymmetric="CutAndNormalize",
+                  seas0=c("S3X3", "S3X1", "S3X5", "S3X9", "S3X15"),
+                  seas1=c("S3X3", "S3X1", "S3X5", "S3X9", "S3X15"),
+                  lsigma=1.5, usigma=2.5){
+  seas0=match.arg(seas0)
+  seas1=match.arg(seas1)
+  trendKernel=match.arg(trendKernel)
+  jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "process", as.numeric(y), period, multiplicative
+                , as.integer(trendLength), as.integer(trendDegree),
+                trendKernel, asymmetric, seas0, seas1, lsigma, usigma)
+  return (new (Class = "JD3_X11Plus", internal = jrslt))
+}
+
