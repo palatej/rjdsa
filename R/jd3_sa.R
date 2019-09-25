@@ -340,17 +340,19 @@ x11.daf<-function(data, period, mul=T, trend.horizon=6, trend.degree=2,
 #' @export
 #'
 #' @examples
-x11.default<-function(y, period, multiplicative=TRUE, trendLength=13, trendDegree=2,
-                  trendKernel=c("Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov", "Trapezoidal"), asymmetric="CutAndNormalize",
-                  seas0=c("S3X3", "S3X1", "S3X5", "S3X9", "S3X15"),
-                  seas1=c("S3X3", "S3X1", "S3X5", "S3X9", "S3X15"),
-                  lsigma=1.5, usigma=2.5){
-  seas0=match.arg(seas0)
-  seas1=match.arg(seas1)
-  trendKernel=match.arg(trendKernel)
-  jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "process", as.numeric(y), period, multiplicative
-                , as.integer(trendLength), as.integer(trendDegree),
-                trendKernel, asymmetric, seas0, seas1, lsigma, usigma)
+x11.default<-function(y, period, mul=TRUE, trend.horizon=6, trend.degree=2,
+                  trend.kernel=c("Henderson", "BiWeight", "TriWeight", "TriCube", "Uniform", "Triangular", "Epanechnikov", "Trapezoidal"),
+                  trend.asymmetric=c("CutAndNormalize", "Direct", "MMSRE"),
+                  seas.s0=c("S3X3", "S3X1", "S3X5", "S3X9", "S3X15"),
+                  seas.s1=c("S3X5", "S3X3", "S3X1", "S3X9", "S3X15"),
+                  extreme.lsig=1.5, extreme.usig=2.5){
+  seas0=match.arg(seas.s0)
+  seas1=match.arg(seas.s1)
+  tkernel=match.arg(trend.kernel)
+  asym=match.arg(trend.asymmetric)
+  jrslt<-.jcall("demetra/saexperimental/r/X11Decomposition", "Ldemetra/saexperimental/r/X11Decomposition$Results;", "process", as.numeric(y), period, mul
+                , as.integer(trend.horizon), as.integer(trend.degree),
+                tkernel, asym, seas0, seas1, extreme.lsig, extreme.usig)
   return (new (Class = "JD3_X11Plus", internal = jrslt))
 }
 
